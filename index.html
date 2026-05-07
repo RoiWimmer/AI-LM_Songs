@@ -237,7 +237,7 @@
     }
 
     .chat-layout {
-      min-height: calc(100vh - 76px);
+      height: calc(100vh - 76px);
       display: grid;
       grid-template-columns: 320px 1fr;
       gap: 20px;
@@ -300,7 +300,7 @@
     .chat {
       display: flex;
       flex-direction: column;
-      min-height: 650px;
+      min-height: 0;
       overflow: hidden;
     }
 
@@ -326,6 +326,7 @@
 
     .messages {
       flex: 1;
+      min-height: 0;
       padding: 24px;
       display: flex;
       flex-direction: column;
@@ -460,10 +461,15 @@
 
       .chat-layout {
         grid-template-columns: 1fr;
+        height: auto;
       }
 
       .sidebar {
         order: 2;
+      }
+
+      .chat {
+        height: 72vh;
       }
 
       .message {
@@ -590,13 +596,20 @@
       setTimeout(() => document.getElementById('songInput').focus(), 100);
     }
 
+    function scrollMessagesToBottom() {
+      const messages = document.getElementById('messages');
+      requestAnimationFrame(() => {
+        messages.scrollTop = messages.scrollHeight;
+      });
+    }
+
     function addMessage(type, html) {
       const messages = document.getElementById('messages');
       const div = document.createElement('div');
       div.className = `message ${type}`;
       div.innerHTML = html;
       messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
+      scrollMessagesToBottom();
       return div;
     }
 
@@ -616,6 +629,7 @@
 
       setTimeout(() => {
         thinking.innerHTML = buildResult(song);
+        scrollMessagesToBottom();
       }, 1300);
     }
 
