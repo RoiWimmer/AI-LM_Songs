@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Algorithm</title>
+  <style>
+    :root {
+      --bg: #050805;
+      --panel: #101510;
+      --green: #1db954;
+      --green-soft: rgba(29, 185, 84, 0.18);
+      --text: #f4f4f4;
+      --muted: #9ca3af;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: transparent;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .algorithm-page {
+      height: 100vh;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .algorithm-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .algorithm-head h1 {
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .algorithm-head p {
+      max-width: 560px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .algorithm-grid {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: 1fr;
+      gap: 18px;
+    }
+
+    .algorithm-card {
+      position: relative;
+      min-height: 0;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      perspective: 1200px;
+      text-align: right;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .algorithm-card.is-open .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .algorithm-card.is-open {
+      z-index: 10;
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      background: linear-gradient(150deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
+      backface-visibility: hidden;
+      overflow: hidden;
+    }
+
+    .card-face::before {
+      content: "";
+      position: absolute;
+      left: 22px;
+      bottom: 22px;
+      width: 46px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 28px rgba(29,185,84,0.35);
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      background: linear-gradient(150deg, rgba(29,185,84,0.16), rgba(255,255,255,0.035));
+      overflow-y: auto;
+      overflow-x: hidden;
+      justify-content: flex-start;
+      padding-left: 56px;
+    }
+
+    .run-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      border: 1px solid rgba(29,185,84,0.24);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .run-number {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 900;
+      border: 1px solid rgba(29,185,84,0.22);
+    }
+
+    .card-copy {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-copy h2 {
+      font-size: clamp(22px, 3vw, 30px);
+      line-height: 1.1;
+      margin-bottom: 12px;
+      letter-spacing: 0;
+    }
+
+    .card-copy p,
+    .card-copy li {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .card-back .card-copy p,
+    .card-back .card-copy li {
+      color: #dfe8df;
+    }
+
+    .card-copy ul {
+      display: grid;
+      gap: 8px;
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .back-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding-left: 36px;
+    }
+
+    .info-wrap {
+      position: static;
+      z-index: 3;
+      flex: 0 0 auto;
+    }
+
+    .info-button {
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 50%;
+      background: rgba(170,170,170,0.26);
+      color: #e8eee8;
+      cursor: help;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      transition: 0.2s;
+    }
+
+    .info-button:hover,
+    .info-button:focus-visible {
+      background: rgba(210,210,210,0.34);
+      outline: none;
+    }
+
+    .info-panel {
+      display: none;
+    }
+
+    .global-info-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 1000;
+      width: min(780px, calc(100vw - 80px));
+      max-height: min(520px, calc(100vh - 150px));
+      overflow-y: auto;
+      padding: 32px 34px;
+      border: 1px solid rgba(255,255,255,0.20);
+      border-radius: 24px;
+      background: rgba(88,94,88,0.96);
+      box-shadow: 0 28px 90px rgba(0,0,0,0.55);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -48%) scale(0.96);
+      transition: 0.2s;
+      backdrop-filter: blur(14px);
+    }
+
+    .global-info-panel.is-visible {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .global-info-panel p,
+    .global-info-panel li {
+      color: #f1f5f1;
+      font-size: 20px;
+      line-height: 1.8;
+    }
+
+    .global-info-panel p + p {
+      margin-top: 14px;
+    }
+
+    .global-info-panel ul {
+      display: grid;
+      gap: 10px;
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .example {
+      margin-top: 12px;
+      padding: 11px 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      background: rgba(5,8,5,0.42);
+    }
+
+    .song-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .song-tile {
+      display: block;
+      min-width: 0;
+      border: 1px solid rgba(29,185,84,0.22);
+      border-radius: 16px;
+      padding: 10px;
+      background: rgba(255,255,255,0.035);
+      color: var(--text);
+      text-decoration: none;
+      transition: 0.2s;
+    }
+
+    .song-tile:hover,
+    .song-tile:focus-visible {
+      background: rgba(29,185,84,0.16);
+      border-color: rgba(29,185,84,0.48);
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    .song-cover {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(29,185,84,0.58), rgba(8,30,15,0.95)),
+        radial-gradient(circle, rgba(255,255,255,0.22), transparent 55%);
+      margin-bottom: 9px;
+    }
+
+    .song-cover img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .song-cover::after {
+      content: attr(data-fallback);
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: rgba(6,16,6,0.78);
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 900;
+      z-index: 0;
+    }
+
+    .song-cover img {
+      position: relative;
+      z-index: 1;
+    }
+
+    .song-title {
+      display: block;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.35;
+    }
+
+    .score {
+      display: inline-block;
+      direction: ltr;
+      color: var(--green);
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .close-card {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 2;
+      width: 30px;
+      height: 30px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50%;
+      background: rgba(5,8,5,0.62);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+      transition: 0.2s;
+    }
+
+    .close-card:hover {
+      background: var(--green);
+      color: #061006;
+      border-color: transparent;
+    }
+
+    @media (max-width: 760px) {
+      .algorithm-page {
+        padding: 20px;
+      }
+
+      .algorithm-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .algorithm-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: 1fr;
+      }
+
+      .algorithm-card,
+      .card-inner {
+        min-height: 0;
+      }
+
+      .global-info-panel {
+        width: min(520px, calc(100vw - 42px));
+        max-height: min(500px, calc(100vh - 150px));
+        padding: 24px;
+      }
+
+      .global-info-panel p,
+      .global-info-panel li {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="algorithm-page">
+    <header class="algorithm-head">
+      <div>
+        <h1>Algorithm Runs</h1>
+      </div>
+      <p>ארבע הרצות לבדיקת דמיון בין שירים: Cosine מול Jaccard, עם ובלי שימוש בז׳אנר. לחיצה על כרטיס פותחת את הניתוח.</p>
+    </header>
+
+    <section class="algorithm-grid" aria-label="Algorithm runs">
+      <article class="algorithm-card" role="button" tabindex="0">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="run-number">1</div>
+            <div class="card-copy">
+              <h2>Cosine Similarity</h2>
+              <p>דמיון לפי מאפיינים מוזיקליים מספריים בלבד.</p>
+            </div>
+            <div class="run-meta">
+              <span class="tag">Cosine</span>
+              <span class="tag">4,877 שירים</span>
+            </div>
+          </div>
+          <div class="card-face card-back">
+            <button class="close-card" type="button" aria-label="Close run 1 card">X</button>
+            <div class="card-copy">
+              <div class="back-head">
+                <h2>ריצה 1: Cosine Similarity</h2>
+                <div class="info-wrap">
+                  <button class="info-button" type="button" aria-label="מידע נוסף על ריצה 1">?</button>
+                  <div class="info-panel">
+                    <p>הקוד משווה כל שיר מול כל שיר: 4,877 כפול 4,877, כלומר בערך 23 מיליון השוואות. לכל זוג מחושב ציון דמיון בין 0 ל-1, כאשר ציון קרוב ל-1 מצביע על דמיון גבוה.</p>
+                    <p>בפועל הוצגו רק 200 ההתאמות החזקות ביותר, כי בלי הגבלה מתקבלות 11,890,126 התאמות ייחודיות.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">0.999468</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Bruno Mars Locked Out Of Heaven" href="https://www.youtube.com/results?search_query=Bruno+Mars+Locked+Out+Of+Heaven" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="BM"><img src="https://img.youtube.com/vi/e-fA-gBCkj0/hqdefault.jpg" alt="Locked Out Of Heaven cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Bruno Mars - Locked Out Of Heaven</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="MAGIC! Rude" href="https://www.youtube.com/results?search_query=MAGIC%21+Rude" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="M"><img src="https://img.youtube.com/vi/PIh2xe4jnpk/hqdefault.jpg" alt="Rude cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">MAGIC! - Rude</span>
+                  </a>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">0.999377</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Icona Pop I Love It" href="https://www.youtube.com/results?search_query=Icona+Pop+I+Love+It" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="IP"><img src="https://img.youtube.com/vi/UxxajLWwzqY/hqdefault.jpg" alt="I Love It cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Icona Pop - I Love It</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Alexandra Stan Mr. Saxobeat" href="https://www.youtube.com/results?search_query=Alexandra+Stan+Mr.+Saxobeat" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="AS"><img src="https://img.youtube.com/vi/nwsewSMWIas/hqdefault.jpg" alt="Mr. Saxobeat cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Alexandra Stan - Mr. Saxobeat</span>
+                  </a>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">0.999629</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Dua Lipa Physical" href="https://www.youtube.com/results?search_query=Dua+Lipa+Physical" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="DL"><img src="https://img.youtube.com/vi/9HDEHj2yzew/hqdefault.jpg" alt="Physical cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Dua Lipa - Physical</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Fitz and the Tantrums HandClap" href="https://www.youtube.com/results?search_query=Fitz+and+the+Tantrums+HandClap" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="FT"><img src="https://img.youtube.com/vi/Y2V6yjjPbX0/hqdefault.jpg" alt="HandClap cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Fitz and the Tantrums - HandClap</span>
+                  </a>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">0.999978</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Coldplay Yellow" href="https://www.youtube.com/results?search_query=Coldplay+Yellow" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="C"><img src="https://img.youtube.com/vi/yKNxeF4KMsY/hqdefault.jpg" alt="Yellow cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Coldplay - Yellow</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Chris Molitor Yellow" href="https://www.youtube.com/results?search_query=Chris+Molitor+Yellow" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="CM"><img src="https://img.youtube.com/vi/yKNxeF4KMsY/hqdefault.jpg" alt="Yellow cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Chris Molitor - Yellow</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="algorithm-card" role="button" tabindex="0">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="run-number">2</div>
+            <div class="card-copy">
+              <h2>Cosine Similarity with genre</h2>
+              <p>דמיון לפי מאפיינים מוזיקליים, with genre.</p>
+            </div>
+            <div class="run-meta">
+              <span class="tag">Cosine</span>
+              <span class="tag">with genre</span>
+              <span class="tag">מספרי + קטגוריה</span>
+            </div>
+          </div>
+          <div class="card-face card-back">
+            <button class="close-card" type="button" aria-label="Close run 2 card">X</button>
+            <div class="card-copy">
+              <div class="back-head">
+                <h2>ריצה 2: Cosine Similarity with genre</h2>
+                <div class="info-wrap">
+                  <button class="info-button" type="button" aria-label="מידע נוסף על ריצה 2">?</button>
+                  <div class="info-panel">
+                    <p>בריצה הזו הדמיון עדיין מבוסס על המאפיינים המוזיקליים, אבל מתווסף גם מידע על הז׳אנר. המטרה היא לתת עדיפות לשירים שלא רק נשמעים דומים מבחינה מספרית, אלא גם קרובים יותר בסגנון.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">1.000000</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Olivia Dean The Hardest Part" href="https://www.youtube.com/results?search_query=Olivia+Dean+The+Hardest+Part" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="OD"><img src="https://img.youtube.com/vi/rn2AQJ7bZ3c/hqdefault.jpg" alt="The Hardest Part cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Olivia Dean - The Hardest Part</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Olivia Dean The Hardest Part Acoustic" href="https://www.youtube.com/results?search_query=Olivia+Dean+The+Hardest+Part+Acoustic" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="OD"><img src="https://img.youtube.com/vi/rn2AQJ7bZ3c/hqdefault.jpg" alt="The Hardest Part Acoustic cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Olivia Dean - The Hardest Part Acoustic</span>
+                  </a>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">0.999241606</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Lady Gaga The Edge Of Glory" href="https://www.youtube.com/results?search_query=Lady+Gaga+The+Edge+Of+Glory" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="LG"><img src="https://img.youtube.com/vi/QeWBS0JBNzQ/hqdefault.jpg" alt="The Edge Of Glory cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Lady Gaga - The Edge Of Glory</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Demi Lovato Confident" href="https://www.youtube.com/results?search_query=Demi+Lovato+Confident" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="DL"><img src="https://img.youtube.com/vi/cwLRQn61oUY/hqdefault.jpg" alt="Confident cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Demi Lovato - Confident</span>
+                  </a>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">0.999162938</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="P!nk U + Ur Hand" href="https://www.youtube.com/results?search_query=P%21nk+U+%2B+Ur+Hand" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="P"><img src="https://img.youtube.com/vi/YUtHjOvPKT0/hqdefault.jpg" alt="U + Ur Hand cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">P!nk - U + Ur Hand</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Katy Perry Hot N Cold" href="https://www.youtube.com/results?search_query=Katy+Perry+Hot+N+Cold" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="KP"><img src="https://img.youtube.com/vi/kTHNpusq654/hqdefault.jpg" alt="Hot N Cold cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Katy Perry - Hot N Cold</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="algorithm-card" role="button" tabindex="0">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="run-number">3</div>
+            <div class="card-copy">
+              <h2>Jaccard Similarity</h2>
+              <p>דמיון לפי תיוגים מוזיקליים שנוצרו מהמאפיינים.</p>
+            </div>
+            <div class="run-meta">
+              <span class="tag">Jaccard</span>
+              <span class="tag">תגיות בלבד</span>
+            </div>
+          </div>
+          <div class="card-face card-back">
+            <button class="close-card" type="button" aria-label="Close run 3 card">X</button>
+            <div class="card-copy">
+              <div class="back-head">
+                <h2>ריצה 3: Jaccard Similarity</h2>
+                <div class="info-wrap">
+                  <button class="info-button" type="button" aria-label="מידע נוסף על ריצה 3">?</button>
+                  <div class="info-panel">
+                    <p>Jaccard מתאים להשוואה בין קבוצות, לכן הערכים המספריים הומרו לתגיות כמו energy_high, bpm_slow או acousticness_low. לאחר מכן כל שיר יוצג כקבוצת תגיות, והדמיון חושב לפי היחס בין תגיות משותפות לכלל התגיות.</p>
+                    <p>בריצה הזו לא משתמשים ב-genre, אלא רק בתגיות שנוצרו ממאפיינים כמו bpm, danceability, energy, valence, acousticness, instrumentalness, liveness ו-speechiness.</p>
+                    <p>המסקנה: Jaccard Similarity טוב להבנה כללית, אבל פחות מדויק כשהחלוקה היא רק low, medium ו-high. לכן הרבה שירים שונים יכולים לקבל ציון 1.0.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">1.0</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="YONAKA Call Me a Saint" href="https://www.youtube.com/results?search_query=YONAKA+Call+Me+a+Saint" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="Y"><img src="https://img.youtube.com/vi/0frT9qAQO7k/hqdefault.jpg" alt="Call Me a Saint cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">YONAKA - Call Me a Saint</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Brooke Eden Sunroof" href="https://www.youtube.com/results?search_query=Brooke+Eden+Sunroof" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="BE"><img src="https://img.youtube.com/vi/0frT9qAQO7k/hqdefault.jpg" alt="Sunroof cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Brooke Eden - Sunroof</span>
+                  </a>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">1.0</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Morgan Wallen Eric Church Man Made A Bar" href="https://www.youtube.com/results?search_query=Morgan+Wallen+Eric+Church+Man+Made+A+Bar" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="MW"><img src="https://img.youtube.com/vi/7OAL2QJ0Lg8/hqdefault.jpg" alt="Man Made A Bar cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Morgan Wallen, Eric Church - Man Made A Bar</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Creed Higher" href="https://www.youtube.com/results?search_query=Creed+Higher" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="C"><img src="https://img.youtube.com/vi/J16lInLZRms/hqdefault.jpg" alt="Higher cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Creed - Higher</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="algorithm-card" role="button" tabindex="0">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="run-number">4</div>
+            <div class="card-copy">
+              <h2>Jaccard Similarity with genre</h2>
+              <p>דמיון לפי תיוגים מוזיקליים, with genre.</p>
+            </div>
+            <div class="run-meta">
+              <span class="tag">Jaccard</span>
+              <span class="tag">with genre</span>
+              <span class="tag">תוצאות קשוחות יותר</span>
+            </div>
+          </div>
+          <div class="card-face card-back">
+            <button class="close-card" type="button" aria-label="Close run 4 card">X</button>
+            <div class="card-copy">
+              <div class="back-head">
+                <h2>ריצה 4: Jaccard Similarity with genre</h2>
+                <div class="info-wrap">
+                  <button class="info-button" type="button" aria-label="מידע נוסף על ריצה 4">?</button>
+                  <div class="info-panel">
+                    <p>בהרצה הרביעית השתמשנו במדד Jaccard Similarity יחד עם עמודת ה-genre. כמו בריצה הקודמת, המאפיינים המספריים הומרו לתגיות כמו low, medium ו-high, ובנוסף לכל שיר נוספה תגית ז׳אנר, למשל genre_pop או genre_rock.</p>
+                    <p>המטרה הייתה לבדוק האם הוספת הקטגוריה משנה את תוצאות הדמיון ומובילה לזוגות שירים קרובים יותר מבחינת סגנון מוזיקלי. לאחר הוספת genre התוצאות נהיו קשוחות יותר: כדי לקבל דמיון 1.0, שני השירים צריכים להיות זהים גם בתגיות המוזיקליות וגם בז׳אנר.</p>
+                    <p>המשמעות היא שהאלגוריתם לא מסתמך רק על קצב, אנרגיה או ריקודיות, אלא גם דורש התאמה בקטגוריה המוזיקלית הכללית.</p>
+                    <ul>
+                      <li>אלגוריתם: Jaccard Similarity</li>
+                      <li>Category: with genre</li>
+                      <li>What we test: musical tags with genre</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">1.0 | hip hop, pop</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="Ludacris Runaway Love" href="https://www.youtube.com/results?search_query=Ludacris+Runaway+Love" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="L"><img src="https://img.youtube.com/vi/ISvMS6s41vY/hqdefault.jpg" alt="Runaway Love cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Ludacris - Runaway Love</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Gym Class Heroes Stereo Hearts Adam Levine" href="https://www.youtube.com/results?search_query=Gym+Class+Heroes+Stereo+Hearts+Adam+Levine" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="GH"><img src="https://img.youtube.com/vi/T3E9Wjbq44E/hqdefault.jpg" alt="Stereo Hearts cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Gym Class Heroes - Stereo Hearts feat. Adam Levine</span>
+                  </a>
+                </div>
+              </div>
+              <div class="example">
+                <span class="score">1.0 | pop</span>
+                <div class="song-pair">
+                  <a class="song-tile" data-artwork-query="P!nk Raise Your Glass" href="https://www.youtube.com/results?search_query=P%21nk+Raise+Your+Glass" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="P"><img src="https://img.youtube.com/vi/XjVNlG5cZyQ/hqdefault.jpg" alt="Raise Your Glass cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">P!nk - Raise Your Glass</span>
+                  </a>
+                  <a class="song-tile" data-artwork-query="Ariana Grande no tears left to cry" href="https://www.youtube.com/results?search_query=Ariana+Grande+no+tears+left+to+cry" target="_blank" rel="noopener noreferrer">
+                    <span class="song-cover" data-fallback="AG"><img src="https://img.youtube.com/vi/ffxKSjUwKdU/hqdefault.jpg" alt="no tears left to cry cover" loading="lazy" onerror="this.style.display='none'"></span>
+                    <span class="song-title">Ariana Grande - no tears left to cry</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="global-info-panel" id="globalInfoPanel" aria-live="polite"></div>
+
+  <script>
+    const globalInfoPanel = document.getElementById('globalInfoPanel');
+
+    document.querySelectorAll('.algorithm-card').forEach(card => {
+      card.addEventListener('click', () => {
+        card.classList.add('is-open');
+      });
+
+      card.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          card.classList.add('is-open');
+        }
+      });
+    });
+
+    document.querySelectorAll('.close-card').forEach(button => {
+      button.addEventListener('click', event => {
+        event.stopPropagation();
+        button.closest('.algorithm-card').classList.remove('is-open');
+      });
+    });
+
+    document.querySelectorAll('.song-tile, .info-button, .info-panel').forEach(element => {
+      element.addEventListener('click', event => {
+        event.stopPropagation();
+      });
+    });
+
+    document.querySelectorAll('.info-wrap').forEach(infoWrap => {
+      const panel = infoWrap.querySelector('.info-panel');
+
+      const showInfo = () => {
+        globalInfoPanel.innerHTML = panel.innerHTML;
+        globalInfoPanel.classList.add('is-visible');
+      };
+
+      const hideInfo = () => {
+        globalInfoPanel.classList.remove('is-visible');
+      };
+
+      infoWrap.addEventListener('mouseenter', showInfo);
+      infoWrap.addEventListener('mouseleave', hideInfo);
+      infoWrap.addEventListener('focusin', showInfo);
+      infoWrap.addEventListener('focusout', hideInfo);
+    });
+
+    async function loadAlbumArtwork() {
+      const tiles = document.querySelectorAll('.song-tile[data-artwork-query]');
+
+      for (const tile of tiles) {
+        const query = tile.dataset.artworkQuery;
+        const image = tile.querySelector('.song-cover img');
+        if (!query || !image) continue;
+
+        try {
+          const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=1`;
+          const response = await fetch(url);
+          const data = await response.json();
+          const artwork = data.results && data.results[0] && data.results[0].artworkUrl100;
+
+          if (artwork) {
+            image.src = artwork.replace('100x100bb', '600x600bb');
+            image.style.display = 'block';
+          }
+        } catch (error) {
+          image.style.display = 'none';
+        }
+      }
+    }
+
+    loadAlbumArtwork();
+  </script>
+</body>
+</html>

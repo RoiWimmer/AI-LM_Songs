@@ -442,12 +442,32 @@
       cursor: pointer;
     }
 
+    .algorithm-screen {
+      height: calc(100vh - 76px);
+      padding: 0 0 22px;
+      overflow: hidden;
+    }
+
+    .algorithm-frame {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: none;
+      background: transparent;
+      overflow: hidden;
+    }
+
     @media (max-width: 850px) {
       header {
         height: auto;
         padding: 18px 0;
         gap: 16px;
         flex-direction: column;
+      }
+
+      nav {
+        flex-wrap: wrap;
+        justify-content: center;
       }
 
       .hero {
@@ -472,6 +492,10 @@
         height: 72vh;
       }
 
+      .algorithm-screen {
+        height: calc(100vh - 120px);
+      }
+
       .message {
         max-width: 92%;
       }
@@ -489,6 +513,7 @@
       <nav>
         <button class="active" onclick="showScreen('home', this)">Home</button>
         <button onclick="showScreen('chat', this)">AI Chat</button>
+        <button onclick="showScreen('algorithm', this)">Algorithm</button>
       </nav>
     </header>
 
@@ -556,6 +581,17 @@
             <button class="send" onclick="sendSong()">Send</button>
           </div>
         </section>
+      </div>
+    </section>
+
+    <section id="algorithm" class="screen">
+      <div class="algorithm-screen">
+        <iframe
+          id="algorithmFrame"
+          class="algorithm-frame"
+          src="algorithm.html"
+          title="Song similarity algorithm runs"
+        ></iframe>
       </div>
     </section>
   </main>
