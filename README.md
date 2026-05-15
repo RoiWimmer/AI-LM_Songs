@@ -30,3 +30,5 @@ and use Google Gemini API to generate smart explanations and recommendations.
 - Do not call Gemini directly from `index.html`, because the API key would be exposed.
 - Render Static Site is enough for the frontend, but it cannot run backend API code.
 - If a real backend is needed later, create a separate Render Web Service.
+
+https://ai-lm-songs.onrender.com/
